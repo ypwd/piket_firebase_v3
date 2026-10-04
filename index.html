@@ -357,7 +357,7 @@
     .layout{display:flex;min-height:calc(100vh - 54px)}aside{width:190px;background:#0f172a;padding:10px}aside button{display:block;width:100%;margin:4px 0;text-align:left;background:transparent}
     main{flex:1;padding:18px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.card,.panel{background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px #0001}.num{font-size:28px;font-weight:bold}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .tablewrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px;white-space:nowrap}
+    .tablewrap{overflow:visible} .tablewrap table{table-layout:fixed} .tablewrap th,.tablewrap td{white-space:normal;overflow-wrap:anywhere;word-break:break-word}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px;white-space:nowrap}
 
 
     /* =========================================================
@@ -391,7 +391,7 @@
       #laporan > .panel:first-of-type{display:none!important}
       #appPage,.layout,main,#laporan{display:block!important;min-height:auto!important}
       main{padding:0}
-      #report{box-shadow:none!important;margin:0!important;padding:0!important}
+      #report{box-shadow:none!important;margin:0!important;padding:0!important;overflow:visible!important}
       .panel{box-shadow:none!important;border:1px solid #ddd;break-inside:avoid}
       .cards{display:grid!important}
       button{display:none!important}
@@ -404,6 +404,7 @@
     #appBoot{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f1f5f9;color:#1e3a8a;font-weight:700;font-size:15px}
   .bootbox{background:#fff;padding:22px 28px;border-radius:16px;box-shadow:0 12px 40px #0002;text-align:center}
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -600,16 +601,13 @@
           </div>
         </section>
 
-        <section id="hadir" class="hidden"><h2>Kehadiran</h2><div class="panel"><div class="grid"><div><label>Guru</label><select id="hg"></select></div><div><label>Shift</label><select id="hs"><option>Pagi</option><option>Siang</option><option>Sore</option></select></div><div><label>Keterangan</label><input id="hk"></div></div><div class="actions"><button class="ok" onclick="cin()">Absen Datang</button><button onclick="cout()">Absen Pulang</button></div></div><div class="panel"><h3 style="margin-top:0">Absensi Petugas Piket</h3><div class="grid"><div><label>Petugas</label><input id="apNama" readonly></div><div><label>Keterangan</label><input id="apKet" placeholder="Opsional"></div></div><div class="actions"><button class="ok" onclick="absenPetugas(false)">🕘 Absen Datang</button><button onclick="absenPetugas(true)">🕘 Absen Pulang</button></div></div><div class="panel"><h3 style="margin-top:0">Absensi Guru</h3><div class="grid"><div><label>Tanggal</label><input id="agt" type="date"></div></div><div class="actions"><button onclick="loadAbsensiGuru()">Tampilkan</button><button class="ok" onclick="saveAbsensiGuru(this)">💾 Simpan ke Piket Guru</button></div></div><div id="agSummary" class="panel"></div><div id="agTable" class="panel"></div><div id="ht" class="panel"></div></section>
+        <section id="hadir" class="hidden"><h2>Kehadiran</h2><div class="panel"><div class="grid"><div><label>Guru yang belum absen hari ini</label><select id="hg"></select></div><div><label>Keterangan</label><input id="hk"></div></div><div class="actions"><button class="ok" onclick="cin()">Absen Datang Guru</button></div><div class="muted" style="margin-top:8px">Petugas hanya menambahkan absensi guru yang belum tercatat. Data masuk langsung ke Firebase <b>apps/absensi_guru/attendance</b>.</div></div><div class="panel"><h3 style="margin-top:0">Absensi Petugas Piket</h3><div class="grid"><div><label>Petugas</label><input id="apNama" readonly></div><div><label>Keterangan</label><input id="apKet" placeholder="Opsional"></div></div><div class="actions"><button class="ok" onclick="absenPetugas(false)">🕘 Absen Datang</button><button onclick="absenPetugas(true)">🕘 Absen Pulang</button></div></div><div class="panel"><h3 style="margin-top:0">Data Absensi Guru</h3><div class="grid"><div><label>Tanggal</label><input id="agt" type="date"></div></div><div class="actions"><button onclick="loadAbsensiGuru()">Tampilkan</button></div><div class="muted" style="margin-top:8px">Untuk hari ini data otomatis ditampilkan. Tombol Tampilkan digunakan untuk tanggal sebelumnya.</div></div><div id="agSummary" class="panel"></div><div id="agTable" class="panel"></div><div id="ht" class="panel"></div><div class="panel"><h3 style="margin-top:0">Riwayat Absensi Petugas Piket Hari Ini</h3><div id="apTable"></div></div></section>
 
-        <section id="absensiSiswa" class="hidden"><h2>Absensi Siswa</h2><div class="panel"><div class="grid"><div><label>Tanggal</label><input id="ast" type="date"></div><div><label>Kelas</label><select id="ask"><option value="">Semua Kelas</option></select></div><div><label>Status</label><select id="ass"><option value="">Semua Status</option><option>Hadir</option><option>Terlambat</option><option>Sakit</option><option>Izin</option><option>Alpa</option><option>Belum Absen</option></select></div><div><label>Cari NISN / Nama</label><input id="asq" placeholder="Ketik pencarian"></div></div><div class="actions">
-<button onclick="loadAbsensiSiswa()">Tampilkan</button>
-<button class="saveabs" onclick="saveAbsensiSiswa(this)">💾 Simpan ke Absensi Guru Piket</button>
-</div></div><div id="asSummary" class="panel"></div><div id="asTable" class="panel"></div></section>
+        <section id="absensiSiswa" class="hidden"><h2>Absensi Siswa</h2><div class="panel"><div class="grid"><div><label>Tanggal</label><input id="ast" type="date"></div><div><label>Kelas</label><select id="ask"><option value="">Semua Kelas</option></select></div><div><label>Status</label><select id="ass"><option value="">Semua Status</option><option>Hadir</option><option>Terlambat</option><option>Sakit</option><option>Izin</option><option>Alpa</option><option>Belum Absen</option></select></div><div><label>Cari NISN / Nama</label><input id="asq" placeholder="Ketik pencarian"></div></div><div class="actions"><button onclick="loadAbsensiSiswa()">Tampilkan</button></div><div class="muted" style="margin-top:8px">Data hanya dibaca dari Firebase <b>apps/absensi_siswa/attendance</b>. Hari ini otomatis ditampilkan; Tampilkan digunakan untuk tanggal sebelumnya.</div></div><div id="asSummary" class="panel"></div><div id="asTable" class="panel"></div></section>
 
-        <section id="jadwal" class="hidden"><h2>Jadwal Piket</h2><div class="panel"><div class="grid"><input id="jt" type="date"><select id="jg"></select><select id="js"><option>Pagi</option><option>Siang</option><option>Sore</option></select><input id="jm" value="07:00"><input id="jx" value="15:00"><input id="jr" value="Ruang Guru Piket"><textarea id="jc" placeholder="Catatan"></textarea></div><div class="actions"><button onclick="sj()">Simpan</button></div></div><div id="jtable" class="panel"></div></section>
+        <section id="jadwal" class="hidden"><h2>Jadwal Piket</h2><div class="panel"><div class="muted">Menu ini hanya menampilkan jadwal piket sebagai informasi. Form input dan Shift tidak digunakan.</div></div><div id="jtable" class="panel"></div></section>
 
-        <section id="kejadian" class="hidden"><h2>Kejadian</h2><div class="panel"><div class="grid"><input id="kt" type="date"><input id="kw" type="time"><select id="kjenis"><option>Siswa Tidak Hadir</option><option>Masalah Kedisiplinan</option><option>Kerusakan Fasilitas</option><option>Kesehatan/Kecelakaan</option><option>Lainnya</option></select><input id="kl" placeholder="Lokasi"><input id="kp" placeholder="Pelapor"><textarea id="ku" placeholder="Uraian"></textarea><textarea id="ktl" placeholder="Tindak lanjut"></textarea></div><div class="actions"><button onclick="sk()">Simpan</button></div></div><div id="ktable" class="panel"></div></section>
+        <section id="kejadian" class="hidden"><h2>Kejadian</h2><div class="panel"><div class="grid"><input id="kt" type="date"><input id="kw" type="time"><select id="kjenis"><option>Masalah Kedisiplinan</option><option>Kerusakan Fasilitas</option><option>Kesehatan/Kecelakaan</option><option>Lainnya</option></select><input id="kl" placeholder="Lokasi"><input id="kp" placeholder="Pelapor"><textarea id="ku" placeholder="Uraian"></textarea><textarea id="ktl" placeholder="Tindak lanjut"></textarea></div><div class="actions"><button onclick="sk()">Simpan</button></div></div><div id="ktable" class="panel"></div></section>
 
         <section id="siswaTerlambat" class="hidden">
           <h2>Siswa Terlambat</h2>
@@ -617,9 +615,9 @@
             <div class="grid">
               <div><label>Tanggal</label><input id="stt" type="date"></div>
               <div><label>Waktu</label><input id="stw" type="time"></div>
-              <div><label>NISN</label><input id="stn" placeholder="NISN siswa"></div>
-              <div><label>Nama Siswa</label><input id="stnama" placeholder="Nama siswa"></div>
-              <div><label>Kelas</label><input id="stk" placeholder="Contoh: XI RPL 1"></div>
+              <div><label>NISN</label><input id="stn" placeholder="NISN siswa" oninput="lookupSiswaByNisn()" autocomplete="off"></div>
+              <div><label>Nama Siswa</label><input id="stnama" placeholder="Otomatis dari NISN" readonly></div>
+              <div><label>Kelas</label><input id="stk" placeholder="Otomatis dari NISN" readonly></div>
               <div><label>Keterangan</label><input id="stketerangan" placeholder="Opsional"></div>
             </div>
             <div class="actions"><button class="ok" onclick="saveSiswaTerlambat()">💾 Simpan Siswa Terlambat</button></div>
@@ -627,7 +625,7 @@
           <div id="stTable" class="panel"></div>
         </section>
 
-        <section id="tugas" class="hidden"><h2>Tugas Piket</h2><div class="panel"><div class="grid"><input id="tt" type="date"><select id="tg"></select><textarea id="tx" placeholder="Tugas"></textarea><textarea id="tk" placeholder="Keterangan"></textarea></div><div class="actions"><button onclick="st()">Tambah</button></div></div><div id="ttable" class="panel"></div></section>
+        <section id="tugas" class="hidden"><h2>Tugas Piket</h2><div class="panel"><div class="grid"><input id="tt" type="date"><select id="tg"></select><textarea id="tx" placeholder="Tugas"></textarea><textarea id="tk" placeholder="Keterangan"></textarea></div><div class="actions"><button onclick="st()">Simpan Tugas</button></div></div><div id="ttable" class="panel"></div></section>
 
         <section id="guru" class="hidden"><h2>Data Guru</h2><div class="panel"><div class="grid"><input id="gn" placeholder="NIP/NUPTK"><input id="gm" placeholder="Nama Guru"><input id="gp" placeholder="Mata Pelajaran"><input id="gh" placeholder="No HP"><input id="ge" placeholder="Email"><select id="ga"><option>Ya</option><option>Tidak</option></select></div><div class="actions"><button onclick="sg()">Simpan Guru</button></div></div><div id="gtable" class="panel"></div></section>
 
@@ -777,68 +775,52 @@ async function directLogin(username,password){
     return {ok:false,message:e.message||String(e)};
   }
 }
-async function safeFbGet(path){
-  try{return await fbGet(path);}catch(e){console.warn('Firebase read dilewati:',path,e&&e.message||e);return null;}
-}
 async function directInitial(){
   const p=await currentProfile();
-  // Setiap sumber dibaca terpisah. Jika satu path terkena permission_denied,
-  // tampilan Jadwal dan Data Guru tetap harus bisa dirender.
-  const [teachers,jadwal,kejadian,tugas,users]=await Promise.all([
-    safeFbGet('shared/teachers'),
-    safeFbGet('apps/piket/jadwal'),
-    safeFbGet('apps/piket/kejadian'),
-    safeFbGet('apps/piket/tugas_guru'),
-    safeFbGet('apps/piket/users')
+  const [teachers,jadwal,kejadian,tugas,users,students,petugasAttendance]=await Promise.all([
+    fbGet('shared/teachers'),fbGet('apps/piket/jadwal'),fbGet('apps/piket/kejadian'),fbGet('apps/piket/tugas_guru'),fbGet('apps/piket/users'),fbGet('shared/students'),fbGet('apps/piket/attendance')
   ]);
-  const guru=Object.entries(teachers||{}).map(([k,v])=>({
-    GuruID:v.idGuru||v.GuruID||k,
-    NIP:v.nip||v.NIP||v.idGuru||v.GuruID||k,
-    NamaGuru:v.nama||v.NamaGuru||v.Nama||v.namaGuru||'',
-    Mapel:v.mataPelajaran||v.Mapel||v.mapel||'',
-    NoHP:v.noHp||v.NoHP||v.noHP||'',
-    Email:v.email||v.Email||'',
-    Aktif:(v.active===false||v.aktif===false||String(v.Aktif||'Ya')==='Tidak')?'Tidak':'Ya'
-  }));
-  const us=asArray(users).map(x=>({UserID:x.UserID||x.userID||x.uid||'',Username:x.Username||x.username||'',Nama:x.NamaPetugas||x.nama||x.Nama||'',Role:x.Role||normalizeRole(x.role),Aktif:String(x.Aktif||'Ya')==='Tidak'?'Tidak':'Ya',uid:x.uid||''}));
-  const js=asArray(jadwal).map(x=>({
-    JadwalID:x.JadwalID||x.jadwalID||x.id||'',
-    Tanggal:dateOnly(x.Tanggal||x.tanggal||x.date||''),
-    Hari:x.Hari||x.hari||'',
-    Shift:x.Shift||x.shift||'',
-    JamMulai:x.JamMulai||x.jamMulai||x.jam||x.Jam||'',
-    JamSelesai:x.JamSelesai||x.jamSelesai||'',
-    UserID:x.UserID||x.userID||x.uid||'',
-    NamaGuru:x.NamaGuru||x.NamaPetugas||x.namaPetugas||x.Petugas||x.petugas||x.nama||x.Nama||'',
-    RuangPiket:x.RuangPiket||x.ruangPiket||x.Ruang||x.ruang||'',
-    Status:x.Status||x.status||'Aktif',
-    Catatan:x.Catatan||x.catatan||''
-  }));
+  const guru=Object.entries(teachers||{}).map(([k,v])=>({GuruID:v.idGuru||k,NIP:v.nip||v.NIP||'',NamaGuru:v.nama||v.NamaGuru||'',Mapel:v.mataPelajaran||v.Mapel||v.matapelajaran||'',NoHP:v.noHp||v.NoHP||'',Email:v.email||v.Email||'',Aktif:v.active===false?'Tidak':'Ya'}));
+  const us=asArray(users).map(x=>({UserID:x.UserID||x.userID||'',Username:x.Username||x.username||'',Nama:x.NamaPetugas||x.nama||x.Nama||'',Role:x.Role||normalizeRole(x.role),Aktif:String(x.Aktif||'Ya')==='Tidak'?'Tidak':'Ya',uid:x.uid||''}));
+  const js=asArray(jadwal).map(x=>({JadwalID:x.JadwalID||x.jadwalID||'',Tanggal:dateOnly(x.Tanggal||x.tanggal),Hari:x.Hari||x.hari||'',JamMulai:x.JamMulai||x.jamMulai||'',JamSelesai:x.JamSelesai||x.jamSelesai||'',UserID:x.UserID||x.userID||'',NamaGuru:x.NamaGuru||x.NamaPetugas||x.namaPetugas||'',RuangPiket:x.RuangPiket||x.ruangPiket||'',Status:x.Status||x.status||'Aktif',Catatan:x.Catatan||x.catatan||''}));
   const kj=asArray(kejadian).map(x=>({KejadianID:x.KejadianID||x.kejadianID||'',Tanggal:dateOnly(x.Tanggal||x.tanggal),Waktu:x.Waktu||x.waktu||'',Jenis:x.Jenis||x.jenis||'',Lokasi:x.Lokasi||x.lokasi||'',Uraian:x.Uraian||x.uraian||'',TindakLanjut:x.TindakLanjut||x.tindakLanjut||'',Pelapor:x.Pelapor||x.pelapor||'',Status:x.Status||x.status||'Open'}));
-  const tg=asArray(tugas).map(x=>({TugasID:x.TugasID||x.tugasID||x.id||'',Tanggal:dateOnly(x.Tanggal||x.tanggal),GuruID:x.GuruID||x.guruID||'',NamaGuru:x.NamaGuru||x.namaGuru||x.Nama||x.nama||'',Tugas:x.Tugas||x.tugas||'',Status:x.Status||x.status||'Open',Keterangan:x.Keterangan||x.keterangan||''}));
-  return {profile:p,guru,jadwal:js,kejadian:kj,tugas:tg,kehadiran:[],siswaTerlambat:[],users:us};
+  const tg=asArray(tugas).map(x=>({TugasID:x.TugasID||x.tugasID||'',Tanggal:dateOnly(x.Tanggal||x.tanggal),GuruID:x.GuruID||x.guruID||'',NamaGuru:x.NamaGuru||x.namaGuru||'',Tugas:x.Tugas||x.tugas||'',Status:x.Status||x.status||'Open',Keterangan:x.Keterangan||x.keterangan||''}));
+  const siswa=Object.entries(students||{}).map(([k,v])=>({NISN:String(v.nisn||v.NISN||k),Nama:v.nama||v.Nama||'',Kelas:v.kelas||v.Kelas||''}));
+  const pa=asArray(petugasAttendance).map(x=>Object.assign({},x,{_key:x._key||''}));
+  const today=localDate();
+  const kehadiran=await directAbsensiGuru(today);
+  return {profile:p,guru,jadwal:js,kejadian:kj,tugas:tg,kehadiran,siswaTerlambat:[],users:us,siswa,attendancePetugas:pa};
 }
 async function directDash(){
-  const d=D||{};
-  let hadir=0;
-  try{const a=await fbGet('apps/absensi_guru/attendance');hadir=Object.keys(a||{}).length;}catch(e){console.warn('Kehadiran guru dashboard dilewati:',e&&e.message||e);}
-  return {guru:(d.guru||[]).length,jadwal:(d.jadwal||[]).length,hadir,kejadian:(d.kejadian||[]).length,tugas:(d.tugas||[]).length};
+  const d=D||{};return {guru:(d.guru||[]).length,jadwal:(d.jadwal||[]).length,hadir:(d.kehadiran||[]).length,kejadian:(d.kejadian||[]).filter(x=>String(x.Jenis||'').trim()!=='Siswa Terlambat').length,tugas:(d.tugas||[]).length};
 }
 async function directRekapSiswa(tgl){const a=await fbGet('apps/absensi_siswa/attendance');const arr=asArray(a);const rows=arr.filter(x=>dateOnly(x.tanggal||x.Tanggal)===tgl);return {total:rows.length,rows};}
 async function directAbsensiSiswa(tgl,kelas,status,q){const a=await fbGet('apps/absensi_siswa/attendance');return asArray(a).filter(x=>dateOnly(x.tanggal||x.Tanggal)===tgl && (!kelas||String(x.kelas||x.Kelas)===kelas) && (!status||String(x.status||x.Status).toLowerCase()===String(status).toLowerCase()) && (!q||JSON.stringify(x).toLowerCase().includes(String(q).toLowerCase()))).map(x=>({Tanggal:dateOnly(x.tanggal||x.Tanggal),NISN:x.nisn||x.NISN||'',Nama:x.nama||x.Nama||'',Kelas:x.kelas||x.Kelas||'',JamDatang:x.jamDatang||x.JamDatang||'',JamPulang:x.jamPulang||x.JamPulang||'',Status:x.status||x.Status||'',KeteranganWaktu:x.keteranganWaktu||x.KeteranganWaktu||x.keterangan||''}));}
-async function directAbsensiGuru(tgl){const a=await fbGet('apps/absensi_guru/attendance');return asArray(a).filter(x=>dateOnly(x.tanggal||x.Tanggal)===tgl).map(x=>({Tanggal:dateOnly(x.tanggal||x.Tanggal),NIP:x.idGuru||x.GuruID||'',Nama:x.nama||x.Nama||'',Shift:x.shift||x.Shift||'',JamDatang:x.jamMasuk||x.JamDatang||'',JamPulang:x.jamPulang||x.JamPulang||'',Status:x.status||'Hadir',Keterangan:x.keterangan||x.Keterangan||''}));}
+async function directAbsensiGuru(tgl){const a=await fbGet('apps/absensi_guru/attendance');return asArray(a).filter(x=>dateOnly(x.tanggal||x.Tanggal)===tgl).map(x=>({Tanggal:dateOnly(x.tanggal||x.Tanggal),NIP:x.idGuru||x.GuruID||'',Nama:x.nama||x.Nama||'',JamDatang:x.jamMasuk||x.JamDatang||'',JamPulang:x.jamPulang||x.JamPulang||'',Status:x.status||'Hadir',Keterangan:x.keterangan||x.Keterangan||''}));}
 async function directLaporan(tgl){
-  const [s,g,k,t,j,u]=await Promise.all([directAbsensiSiswa(tgl,'','',''),directAbsensiGuru(tgl),fbGet('apps/piket/kejadian'),fbGet('apps/piket/tugas'),fbGet('apps/piket/jadwal'),fbGet('apps/piket/users')]);
-  const per={};s.forEach(x=>{const c=x.Kelas||'Tanpa Kelas';per[c]??={kelas:c,total:0,hadir:0,izin:0,sakit:0,alpa:0};per[c].total++;const st=String(x.Status).toLowerCase();if(st==='hadir')per[c].hadir++;else if(st==='izin')per[c].izin++;else if(st==='sakit')per[c].sakit++;else if(st==='alpa')per[c].alpa++;});
+  const [s,g,k,t,j,pet]=await Promise.all([directAbsensiSiswa(tgl,'','',''),directAbsensiGuru(tgl),fbGet('apps/piket/kejadian'),fbGet('apps/piket/tugas_guru'),fbGet('apps/piket/jadwal'),fbGet('apps/piket/attendance')]);
+  const per={};
+  s.forEach(x=>{
+    const c=x.Kelas||'Tanpa Kelas';
+    per[c]??={kelas:c,total:0,hadir:0,izin:0,sakit:0,alpa:0,terlambat:0};
+    per[c].total++;
+    const st=String(x.Status||'').toLowerCase();
+    if(st==='hadir')per[c].hadir++;
+    else if(st==='terlambat')per[c].terlambat++;
+    else if(st==='izin'||st==='ijin')per[c].izin++;
+    else if(st==='sakit')per[c].sakit++;
+    else if(st==='alpa')per[c].alpa++;
+  });
   const kejAll=asArray(k).filter(x=>dateOnly(x.Tanggal||x.tanggal)===tgl);
-  const late=kejAll.filter(x=>String(x.Jenis||'').toLowerCase()==='siswa terlambat');
-  const kej=kejAll.filter(x=>String(x.Jenis||'').toLowerCase()!=='siswa terlambat');
+  const kej=kejAll.filter(x=>String(x.Jenis||x.jenis||'').toLowerCase()!=='siswa terlambat');
+  const late=s.filter(x=>String(x.Status||'').toLowerCase()==='terlambat').map(x=>({Tanggal:x.Tanggal,Waktu:x.JamDatang,NISN:x.NISN,Nama:x.Nama,Kelas:x.Kelas,Keterangan:x.KeteranganWaktu,DicatatOleh:'Petugas Piket'}));
   const tugas=asArray(t).filter(x=>dateOnly(x.Tanggal||x.tanggal)===tgl);
   const jad=asArray(j).filter(x=>dateOnly(x.Tanggal||x.tanggal)===tgl);
-  const pet={};asArray(u).forEach(x=>{const id=x.UserID||x.userID;if(id)pet[id]=x;});
+  const pd=asArray(pet).filter(x=>dateOnly(x.Tanggal||x.tanggal)===tgl);
   Object.values(per).forEach(x=>{x.percent=x.total?Number((x.hadir/x.total*100).toFixed(2)):0;});
   const perKelas=Object.values(per).sort((a,b)=>String(a.kelas).localeCompare(String(b.kelas),'id',{numeric:true}));
-  return {ok:true,tanggal:tgl,kehadiranSiswa:{perKelas,total:{total:s.length,hadir:s.filter(x=>String(x.Status).toLowerCase()==='hadir').length,izin:s.filter(x=>String(x.Status).toLowerCase()==='izin').length,sakit:s.filter(x=>String(x.Status).toLowerCase()==='sakit').length,alpa:s.filter(x=>String(x.Status).toLowerCase()==='alpa').length}},kehadiranGuru:{total:g.length,rows:g},kejadian:kej,siswaTerlambat:late,tugasGuruTidakHadir:tugas,petugasPiket:{jadwal:jad,users:pet}};
+  const total={total:s.length,hadir:s.filter(x=>String(x.Status).toLowerCase()==='hadir').length,izin:s.filter(x=>/^(izin|ijin)$/i.test(String(x.Status))).length,sakit:s.filter(x=>String(x.Status).toLowerCase()==='sakit').length,alpa:s.filter(x=>String(x.Status).toLowerCase()==='alpa').length,terlambat:s.filter(x=>String(x.Status).toLowerCase()==='terlambat').length};
+  return {ok:true,tanggal:tgl,kehadiranSiswa:{perKelas,total},kehadiranGuru:{total:g.length,rows:g,jumlahHadir:g.filter(x=>String(x.Status).toLowerCase()==='hadir').length,daftarHadir:g},kejadian:kej,siswaTerlambat:late,tugasGuruTidakHadir:tugas,petugasPiket:{data:pd,jadwal:jad}};
 }
 async function directCall(f,...args){
   if(f==='login')return directLogin(args[0],args[1]);
@@ -857,22 +839,22 @@ async function directCall(f,...args){
     await fbSet('shared/teachers/'+id,{idGuru:id,nama:o.NamaGuru||'',mataPelajaran:o.Mapel||'',noHp:o.NoHP||'',email:o.Email||'',active:o.Aktif!=='Tidak'});return {ok:true};
   }
   if(f==='jadwal'){
-    const o=args[0], id=o.JadwalID||'JDW'+Date.now().toString().slice(-6);await fbPush('apps/piket/jadwal',Object.assign({JadwalID:id,DibuatPada:isoNow()},o,{Hari:new Date(o.Tanggal+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long'})}));return {ok:true};
+    throw new Error('Jadwal Piket hanya ditampilkan pada aplikasi ini. Penginputan jadwal dilakukan dari pengelola data jadwal.');
   }
   if(f==='kejadian'){
     const o=args[0],id='KJD'+Date.now().toString().slice(-6);await fbPush('apps/piket/kejadian',Object.assign({KejadianID:id,DibuatPada:isoNow(),Status:'Open'},o));return {ok:true};
   }
   if(f==='tugas'){
-    const o=args[0],id='TGS'+Date.now().toString().slice(-6);await fbPush('apps/piket/tugas',Object.assign({TugasID:id,Status:'Open',DicatatOleh:p.nama||p.username,DibuatPada:isoNow()},o));return {ok:true};
+    const o=args[0],id='TGS'+Date.now().toString().slice(-6);await fbPush('apps/piket/tugas_guru',Object.assign({TugasID:id,Status:'Open',DicatatOleh:p.nama||p.username,DibuatPada:isoNow()},o));return {ok:true};
   }
   if(f==='absensiPetugas'){
     const o={Tanggal:localDate(),UserID:p.userID||p.userId||p.uid,NamaPetugas:p.nama||p.username,JamDatang:args[0]?null:clock(),JamPulang:args[0]?clock():null,Status:'Hadir',Keterangan:args[1]||'',DicatatOleh:p.nama||p.username,DibuatPada:isoNow()};
-    const old=asArray(await fbGet('apps/piket/absensiPetugas')).find(x=>x.Tanggal===o.Tanggal&&String(x.UserID)===String(o.UserID));
-    if(old&&args[0]){await fbSet('apps/piket/absensiPetugas/'+old._key,Object.assign(old,o,{JamDatang:old.JamDatang||o.JamDatang}));}else if(!old){await fbPush('apps/piket/absensiPetugas',o);}else throw new Error('Anda sudah absen datang hari ini.');
+    const all=await fbGet('apps/piket/attendance'); const entries=Object.entries(all||{}); const found=entries.find(([k,x])=>x&&x.Tanggal===o.Tanggal&&String(x.UserID)===String(o.UserID));
+    if(found&&args[0]){await fbSet('apps/piket/attendance/'+found[0],Object.assign(found[1],o,{JamDatang:found[1].JamDatang||o.JamDatang}));}else if(!found){await fbPush('apps/piket/attendance',o);}else throw new Error('Anda sudah absen datang hari ini.');
     return {ok:true,message:'Absensi petugas berhasil.'};
   }
   if(f==='hadir'){
-    const gid=String(args[0]||'').trim(), shift=String(args[1]||'Pagi').trim()||'Pagi', ket=String(args[2]||'').trim(), pulang=!!args[3];
+    const gid=String(args[0]||'').trim(), ket=String(args[1]||'').trim();
     const teachers=await fbGet('shared/teachers');
     const entries=Object.entries(teachers||{});
     const gEntry=entries.find(([k,v])=>String(v.idGuru||k)===gid && v.active!==false);
@@ -880,30 +862,28 @@ async function directCall(f,...args){
     const g=gEntry[1], date=localDate(), key=date+'_'+gid;
     const ref=FB_DB.ref(FB_ROOT+'/apps/absensi_guru/attendance/'+key);
     const snap=await ref.once('value');
-    const existing=snap.val();
-    if(pulang){
-      if(!existing || !existing.jamMasuk) throw new Error('Absen datang guru belum ditemukan.');
-      if(existing.jamPulang) throw new Error('Guru sudah absen pulang.');
-      // Petugas tidak boleh mengubah record lama. Pulang hanya diizinkan Admin/Guru melalui Rules yang sudah ada.
-      if(String(p.role||'').toLowerCase()==='petugas') throw new Error('Petugas hanya dapat menambahkan absensi guru yang belum ada, tidak mengubah absensi yang sudah tersimpan.');
-      const upd=Object.assign({},existing,{jamPulang:clock(),keterangan:ket||existing.keterangan||''}); await ref.set(upd); return {ok:true,mode:'pulang',message:'Absen pulang berhasil.'};
-    }
-    if(existing) throw new Error('Absensi guru untuk tanggal dan guru tersebut sudah ada. Tidak ditimpa.');
-    const record={idGuru:gid,jabatan:g.jabatan||'',jamMasuk:clock(),jamPulang:'',jarakMeter:g.jarakMeter||0,kunciAbsensi:key,latitude:g.latitude||0,longitude:g.longitude||0,mataPelajaran:g.mataPelajaran||g.Mapel||'',nama:g.nama||g.NamaGuru||'',tanggal:date,keterangan:ket||'',shift:shift};
+    if(snap.exists()) throw new Error('Guru tersebut sudah memiliki absensi pada tanggal hari ini.');
+    const record={idGuru:gid,jabatan:g.jabatan||'',jamMasuk:clock(),jamPulang:'',jarakMeter:g.jarakMeter||0,kunciAbsensi:key,latitude:g.latitude||0,longitude:g.longitude||0,mataPelajaran:g.mataPelajaran||g.Mapel||g.matapelajaran||'',nama:g.nama||g.NamaGuru||'',tanggal:date,keterangan:ket||'',status:'Hadir'};
     await ref.set(record);
-    return {ok:true,mode:'datang',message:'Absensi guru berhasil ditambahkan.'};
+    return {ok:true,mode:'datang',message:'Absensi guru berhasil ditambahkan ke apps/absensi_guru/attendance.'};
   }
   if(f==='simpanAbsensiGuru'){
     const tgl=String(args[0]||localDate()).slice(0,10); const data=await directAbsensiGuru(tgl); return {ok:true,message:'Data absensi guru dimuat. Penambahan dilakukan melalui tombol Absen Datang agar record lama tidak tertimpa.',count:data.length};
   }
   if(f==='simpanAbsensiSiswa')throw new Error('Absensi siswa adalah sumber Firebase read-only pada aplikasi Guru Piket; versi direct tidak menyalin data ke database lain.');
   if(f==='siswaTerlambat'){
-    const o=args[0],id='KJD'+Date.now().toString().slice(-6);await fbPush('apps/piket/kejadian',Object.assign({KejadianID:id,Jenis:'Siswa Terlambat',Pelapor:p.nama||p.username,Status:'Open',DibuatPada:isoNow()},o));return {ok:true};
+    const o=args[0];
+    const ref=FB_DB.ref(FB_ROOT+'/apps/absensi_siswa/attendance/'+String(o.Tanggal)+'_'+String(o.NISN));
+    const snap=await ref.once('value');
+    const existing=snap.val()||{};
+    const rec=Object.assign({},existing,{tanggal:o.Tanggal,nisn:o.NISN,nama:o.Nama,kelas:o.Kelas,jamDatang:o.Waktu,jamPulang:existing.jamPulang||'',status:'Terlambat',keterangan:o.Keterangan||'Terlambat (Input Petugas Piket)',dicatatOleh:p.nama||p.username,dibuatPada:isoNow()});
+    await ref.set(rec);
+    return {ok:true,message:'Siswa terlambat berhasil ditambahkan ke absensi siswa dengan status Terlambat.'};
   }
   if(f==='user')throw new Error('Pembuatan akun Authentication tidak boleh dilakukan dari frontend. Buat akun di Firebase Authentication, lalu profil security/users; versi direct tidak membuat akun secara otomatis.');
   throw new Error('Aksi direct Firebase belum tersedia: '+f);
 }
-async function call(f,...args){return directCall(f,...args);}
+async function call(f,...args){if(f!=='login' && args.length && args[0]===T)args=args.slice(1);return directCall(f,...args);}
 
 function saveSession(){try{if(M)localStorage.setItem(SESSION_KEY,JSON.stringify({user:M}));}catch(e){}}
 function clearSession(){try{localStorage.removeItem(SESSION_KEY);localStorage.removeItem(PAGE_KEY);}catch(e){}}
@@ -936,7 +916,7 @@ async function restoreSession(){
     $('loginPage').classList.remove('hidden');$('appPage').classList.add('hidden');
   }
 }
-function setDateDefaults(){const d=new Date().toISOString().slice(0,10);['jt','kt','tt','rs','re','ast','agt','stt'].forEach(id=>{if($(id))$(id).value=d;});}
+function setDateDefaults(){const d=new Date().toISOString().slice(0,10);['kt','tt','rs','ast','agt','stt'].forEach(id=>{if($(id))$(id).value=d;});}
 async function login(){
   const u=$('username').value.trim(), p=$('password').value;
   $('loginMsg').textContent='';
@@ -954,15 +934,32 @@ async function login(){
 }
 async function logout(){try{if(T)await call('logout',T);}finally{T='';M=null;D={};clearSession();location.reload();}}
 async function refreshAll(initialData){
-  D=initialData||await call('initial',T);let d={guru:(D.guru||[]).length,jadwal:(D.jadwal||[]).length,hadir:0,kejadian:(D.kejadian||[]).length,tugas:(D.tugas||[]).length};try{d=await call('dash',T);}catch(e){console.warn('Dashboard sebagian dilewati:',e&&e.message||e);}
+  // Jadwal dan Data Guru harus tetap tampil walaupun pembacaan Absensi Siswa
+  // sementara ditolak oleh Firebase Rules. Jangan biarkan error tersebut
+  // menghentikan render seluruh aplikasi.
+  D=initialData||await call('initial',T);
+
+  // Statistik dashboard dihitung dari data yang sudah berhasil dimuat oleh initial().
+  // Absensi Siswa tetap dibaca oleh fungsi aslinya di bawah dan TIDAK diubah.
+  const d={
+    guru:(D.guru||[]).filter(x=>x.Aktif==='Ya').length,
+    jadwal:(D.jadwal||[]).length,
+    hadir:(D.kehadiran||[]).length,
+    kejadian:(D.kejadian||[]).filter(x=>String(x.Status||x.status||'').toLowerCase()!=='selesai').length,
+    tugas:(D.tugas||[]).filter(x=>String(x.Status||x.status||'').toLowerCase()!=='selesai').length
+  };
   $('dGuru').textContent=d.guru;$('dJadwal').textContent=d.jadwal;$('dHadir').textContent=d.hadir;$('dKejadian').textContent=d.kejadian;$('dTugas').textContent=d.tugas;
   try{const sr=await call('rekapAbsensiSiswa',T,new Date().toISOString().slice(0,10));$('dSiswa').textContent=sr.total;}catch(e){$('dSiswa').textContent='-';}
   const gs=(D.guru||[]).filter(x=>x.Aktif==='Ya');
   const us=(D.users||[]).filter(x=>x.Aktif==='Ya');
-  ['hg','tg'].forEach(id=>{const s=$(id);s.innerHTML='';gs.forEach(g=>{const o=document.createElement('option');o.value=g.GuruID;o.textContent=g.NamaGuru;s.appendChild(o);});});
+  const checked=new Set((D.kehadiran||[]).map(x=>String(x.NIP||x.GuruID||'')));
+  const belum=gs.filter(g=>!checked.has(String(g.GuruID)));
+  ['hg'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='';(belum.length?belum:gs).forEach(g=>{const o=document.createElement('option');o.value=g.GuruID;o.textContent=(belum.length?'':'✓ ')+g.NamaGuru;s.appendChild(o);});});
+  ['tg'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='';gs.forEach(g=>{const o=document.createElement('option');o.value=g.GuruID;o.textContent=g.NamaGuru;s.appendChild(o);});});
   const jsUser=$('jg');
   if(jsUser){jsUser.innerHTML='';us.forEach(x=>{const o=document.createElement('option');o.value=x.UserID;o.textContent=x.Nama+' ('+x.UserID+')';jsUser.appendChild(o);});}
   render();
+  if($('apTable')) table('apTable',['Tanggal','Petugas','Datang','Pulang','Status','Keterangan'],(D.attendancePetugas||[]).filter(x=>dateOnly(x.Tanggal||x.tanggal)===localDate()).map(x=>[x.Tanggal,x.NamaPetugas,x.JamDatang,x.JamPulang,x.Status,x.Keterangan]));
   if($('absensiSiswa')) loadAbsensiKelas();
 }
 function show(id,remember=true){
@@ -971,6 +968,10 @@ function show(id,remember=true){
   $(target).classList.remove('hidden');
   if(remember)saveLastPage(target);
   render();
+  const today=localDate();
+  if(target==='hadir'){ if($('agt'))$('agt').value=today; loadAbsensiGuru(); }
+  if(target==='absensiSiswa'){ if($('ast'))$('ast').value=today; loadAbsensiKelas().then(()=>loadAbsensiSiswa()); }
+  if(target==='laporan' && $('rs') && !$('rs').value)$('rs').value=today;
 }
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function table(target,headers,rows){
@@ -980,17 +981,17 @@ function table(target,headers,rows){
 }
 function render(){
   if(!D||!M)return;
-  table('gtable',['NIP','Nama','Mapel','HP','Aktif'],(D.guru||[]).map(x=>[x.NIP||x.GuruID,x.NamaGuru,x.Mapel,x.NoHP,x.Aktif]));
-  table('jtable',['Tanggal','Hari','Petugas','Jam','Ruang'],(D.jadwal||[]).map(x=>[x.Tanggal,x.Hari,x.NamaGuru,(x.JamMulai||'')+(x.JamSelesai?'-'+x.JamSelesai:''),x.RuangPiket]));
+  table('gtable',['NIP','Nama','Mapel','HP','Aktif'],(D.guru||[]).map(x=>[x.NIP,x.NamaGuru,x.Mapel,x.NoHP,x.Aktif]));
+  table('jtable',['Tanggal','Hari','Petugas','Jam','Ruang'],(D.jadwal||[]).map(x=>[x.Tanggal,x.Hari,x.NamaGuru,(x.JamMulai||'')+'-'+(x.JamSelesai||''),x.RuangPiket]));
   const today=new Date().toISOString().slice(0,10);
-  table('ht',['Tanggal','Guru','Shift','Datang','Pulang','Status'],(D.kehadiran||[]).filter(x=>x.Tanggal===today).map(x=>[x.Tanggal,x.NamaGuru,x.Shift,x.JamDatang,x.JamPulang,x.Status]));
+  table('ht',['Tanggal','Guru','Datang','Pulang','Status'],(D.kehadiran||[]).filter(x=>x.Tanggal===today).map(x=>[x.Tanggal,x.Nama,x.JamDatang,x.JamPulang,x.Status]));
   table('ktable',['Tanggal','Jenis','Lokasi','Uraian','Status'],(D.kejadian||[]).filter(x=>String(x.Jenis||'').trim()!=='Siswa Terlambat').map(x=>[x.Tanggal,x.Jenis,x.Lokasi,x.Uraian,x.Status]));
   table('stTable',['Tanggal','Waktu','NISN','Nama','Kelas','Keterangan','Dicatat Oleh'],(D.siswaTerlambat||[]).map(x=>[x.Tanggal,x.Waktu,x.NISN,x.Nama,x.Kelas,x.Keterangan,x.DicatatOleh]));
   table('ttable',['Tanggal','Guru','Tugas','Status'],(D.tugas||[]).map(x=>[x.Tanggal,x.NamaGuru,x.Tugas,x.Status]));
   table('utable',['Username','Nama','Role','Aktif'],(D.users||[]).map(x=>[x.Username,x.Nama,x.Role,x.Aktif]));
 }
-async function cin(){try{await call('hadir',T,$('hg').value,$('hs').value,$('hk').value,false);await refreshAll();alert('Absen datang berhasil');}catch(e){alert(e.message);}}
-async function cout(){try{await call('hadir',T,$('hg').value,$('hs').value,$('hk').value,true);await refreshAll();alert('Absen pulang berhasil');}catch(e){alert(e.message);}}
+async function cin(){try{await call('hadir',T,$('hg').value,$('hk').value);await refreshAll();alert('Absensi guru berhasil ditambahkan.');}catch(e){alert(e.message);}}
+async function cout(){alert('Pada menu Guru Piket, petugas hanya dapat menambahkan absensi guru yang belum absen. Absen pulang tidak diubah dari menu ini.');}
 
 async function absenPetugas(pulang){
   const ket=$('apKet') ? $('apKet').value.trim() : '';
@@ -1004,6 +1005,22 @@ async function absenPetugas(pulang){
 async function sg(){try{await call('guru',T,{NIP:$('gn').value,NamaGuru:$('gm').value,Mapel:$('gp').value,NoHP:$('gh').value,Email:$('ge').value,Aktif:$('ga').value});await refreshAll();alert('Data guru tersimpan');}catch(e){alert(e.message);}}
 async function sj(){try{await call('jadwal',T,{Tanggal:$('jt').value,UserID:$('jg').value,Shift:$('js').value,JamMulai:$('jm').value,JamSelesai:$('jx').value,RuangPiket:$('jr').value,Catatan:$('jc').value});await refreshAll();alert('Jadwal tersimpan');}catch(e){alert(e.message);}}
 async function sk(){try{await call('kejadian',T,{Tanggal:$('kt').value,Waktu:$('kw').value,Jenis:$('kjenis').value,Lokasi:$('kl').value,Pelapor:$('kp').value,Uraian:$('ku').value,TindakLanjut:$('ktl').value});await refreshAll();alert('Kejadian tersimpan');}catch(e){alert(e.message);}}
+let siswaLookupTimer=null;
+function lookupSiswaByNisn(){
+  clearTimeout(siswaLookupTimer);
+  siswaLookupTimer=setTimeout(async()=>{
+    const nisn=String($('stn')?.value||'').trim();
+    if(!nisn){$('stnama').value='';$('stk').value='';return;}
+    try{
+      if(!D.siswa||!D.siswa.length){const st=await fbGet('shared/students');D.siswa=Object.entries(st||{}).map(([k,v])=>({NISN:String(v.nisn||v.NISN||k),Nama:v.nama||v.Nama||'',Kelas:v.kelas||v.Kelas||''}));}
+      const x=D.siswa.find(v=>String(v.NISN)===nisn);
+      $('stnama').value=x?x.Nama:'';
+      $('stk').value=x?x.Kelas:'';
+      if(!x) $('stnama').placeholder='NISN tidak ditemukan';
+    }catch(e){console.error(e);}
+  },180);
+}
+
 async function saveSiswaTerlambat(){
   const data={
     Tanggal:$('stt').value,
@@ -1042,17 +1059,8 @@ async function loadAbsensiSiswa(){
     table('asTable',['Tanggal','NISN','Nama','Kelas','Jam Datang','Jam Pulang','Keterangan Waktu','Status'],data.map(x=>[x.Tanggal,x.NISN,x.Nama,x.Kelas,x.JamDatang,x.JamPulang,x.KeteranganWaktu,x.Status]));
   }catch(e){alert(e.message);}
 }
-async function saveAbsensiSiswa(btn){
-  try{
-    if(btn){btn.disabled=true;btn.textContent='⏳ Menyimpan...';}
-    const r=await call('simpanAbsensiSiswa',T,$('ast').value,$('ask').value,$('ass').value,$('asq').value);
-    alert(r.message||'Data absensi siswa berhasil disimpan.');
-  }catch(e){
-    alert(e.message||String(e));
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='💾 Simpan ke Absensi Guru Piket';}
-  }
-}
+async function saveAbsensiSiswa(){alert('Menu Absensi Siswa hanya membaca data Firebase dan tidak menyalin data.');}
+
 
 async function loadAbsensiKelas(){
   try{
@@ -1070,22 +1078,13 @@ async function loadAbsensiGuru(){
   try{
     const data=await call('absensiGuru',T,$('agt').value);
     $('agSummary').innerHTML='<b>Total: '+data.length+'</b>';
-    table('agTable',['Tanggal','NIP','Nama','Shift','Jam Datang','Jam Pulang','Status','Keterangan'],data.map(x=>[x.Tanggal,x.NIP,x.Nama,x.Shift,x.JamDatang,x.JamPulang,x.Status,x.Keterangan]));
+    table('agTable',['Tanggal','NIP','Nama','Jam Datang','Jam Pulang','Status','Keterangan'],data.map(x=>[x.Tanggal,x.NIP,x.Nama,x.JamDatang,x.JamPulang,x.Status,x.Keterangan]));
   }catch(e){alert(e.message);}
 }
 
-async function saveAbsensiGuru(btn){
-  try{
-    if(btn){btn.disabled=true;btn.textContent='⏳ Menyimpan...';}
-    const r=await call('simpanAbsensiGuru',T,$('agt').value);
-    alert(r.message||'Data absensi guru berhasil disimpan.');
-    await refreshAll();
-  }catch(e){
-    alert(e.message||String(e));
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='💾 Simpan ke Piket Guru';}
-  }
-}
+async function saveAbsensiGuru(){alert('Gunakan tombol Absen Datang Guru untuk menambahkan guru yang belum absen.');}
+
+
 
 
 /* =========================================================
@@ -1326,6 +1325,40 @@ function printReportPdf(){
   window.print();
 }
 
+async function generateAndStoreReportPdf(r){
+  if(!window.jspdf || !window.jspdf.jsPDF) throw new Error('Library PDF belum tersedia. Laporan tetap dapat dicetak melalui browser.');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const margin=12, pageW=210, pageH=297, usable=pageW-margin*2;
+  let y=15;
+  const lineH=5;
+  const text=(v,size=9,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);};
+  const write=(v,size=9,bold=false)=>{text(v,size,bold);const lines=doc.splitTextToSize(String(v??''),usable);doc.text(lines,margin,y);y+=Math.max(lineH,lines.length*4.5)+1;};
+  const ensure=(need=10)=>{if(y+need>pageH-15){doc.addPage();y=15;}};
+  write('SMK WIDYA DIRGANTARA',14,true); write('LAPORAN HARIAN GURU PIKET',12,true); write('Tanggal: '+(r.tanggal||''),10,false); y+=2;
+  const s=r.kehadiranSiswa||{}, total=s.total||{};
+  write('REKAPITULASI KEHADIRAN SISWA',11,true);
+  write('Hadir: '+(total.hadir||0)+' | Ijin: '+(total.izin||0)+' | Sakit: '+(total.sakit||0)+' | Alpa: '+(total.alpa||0)+' | Terlambat: '+(total.terlambat||0),9,false);
+  ensure(12);
+  const cols=[['Kelas',28],['Hadir',18],['Ijin',16],['Sakit',18],['Alpa',16],['% Kehadiran',30]];
+  let x=margin; text('',8,true); cols.forEach(c=>{doc.rect(x,y-4,c[1],7);doc.text(c[0],x+1,y,c[1]-2,{maxWidth:c[1]-2});x+=c[1];}); y+=7;
+  (s.perKelas||[]).forEach(row=>{ensure(9);x=margin;const vals=[row.kelas||'',row.hadir||0,row.izin||0,row.sakit||0,row.alpa||0,(row.percent||0)+'%'];vals.forEach((v,i)=>{const w=cols[i][1];doc.rect(x,y-4,w,6);doc.text(String(v),x+1,y,w-2,{maxWidth:w-2});x+=w;});y+=6;});
+  y+=4; ensure(15); write('KEHADIRAN GURU',11,true); (r.kehadiranGuru?.rows||[]).forEach((g,i)=>{ensure(10);write((i+1)+'. '+(g.Nama||'')+' | Datang '+(g.JamDatang||'-')+' | Pulang '+(g.JamPulang||'-')+' | '+(g.Status||''),8,false);});
+  ensure(15); write('KEJADIAN',11,true); if(!(r.kejadian||[]).length)write('Tidak ada kejadian.',8); else (r.kejadian||[]).forEach((e,i)=>{ensure(12);write((i+1)+'. '+(e.Jenis||'')+' | '+(e.Waktu||'')+' | '+(e.Lokasi||'')+' | '+(e.Uraian||''),8);});
+  ensure(15); write('SISWA TERLAMBAT',11,true); if(!(r.siswaTerlambat||[]).length)write('Tidak ada siswa terlambat.',8); else (r.siswaTerlambat||[]).forEach((e,i)=>{ensure(12);write((i+1)+'. '+(e.NISN||'')+' - '+(e.Nama||'')+' | '+(e.Kelas||'')+' | '+(e.Waktu||''),8);});
+  ensure(15); write('TUGAS GURU',11,true); if(!(r.tugasGuruTidakHadir||[]).length)write('Tidak ada tugas guru.',8); else (r.tugasGuruTidakHadir||[]).forEach((e,i)=>{ensure(12);write((i+1)+'. '+(e.NamaGuru||'')+' | '+(e.Tugas||'')+' | '+(e.Keterangan||''),8);});
+  ensure(20); write('PETUGAS PIKET',11,true); (r.petugasPiket?.data||[]).forEach((e,i)=>{ensure(10);write((i+1)+'. '+(e.NamaPetugas||'')+' | Datang '+(e.JamDatang||'-')+' | Pulang '+(e.JamPulang||'-'),8);});
+  const a=signatureDataUrl('sig1'), b=signatureDataUrl('sig2');
+  ensure(55); y+=5; text('',9,true); doc.text('TANDA TANGAN PETUGAS PIKET',margin,y); y+=8;
+  const sigs=[[a,signatureName('sig1','Petugas 1')],[b,signatureName('sig2','Petugas 2')]];
+  sigs.forEach((sig,i)=>{const sx=i?112:margin; doc.text(sig[1],sx,y); if(sig[0]){try{doc.addImage(sig[0],'PNG',sx,y+2,75,28);}catch(e){}} doc.line(sx,y+31,sx+75,y+31);doc.setFontSize(8);doc.text(sig[1],sx,y+36);});
+  const dataUri=doc.output('datauristring');
+  const base64=dataUri.split(',')[1]||'';
+  const payload={tanggal:r.tanggal,namaFile:'Laporan_Guru_Piket_'+r.tanggal+'.pdf',mimeType:'application/pdf',pdfBase64:base64,createdAt:isoNow(),createdBy:M?.Nama||M?.Username||'',ukuranBytes:Math.floor(base64.length*3/4),version:1};
+  await fbSet('apps/piket/laporan_harian/'+String(r.tanggal),payload);
+  return payload;
+}
+
 async function lr(){
   const box=$('report');
   const tgl=$('rs').value;
@@ -1362,17 +1395,16 @@ async function lr(){
     h+='</div>';
 
     h+='<div class="panel" style="margin-top:14px">';
-    h+='<h3 style="margin-top:0">1. Kehadiran Siswa Setiap Kelas</h3>';
+    h+='<h3 style="margin-top:0">1. Rekapitulasi Kehadiran Siswa per Kelas</h3>';
     if(perKelas.length){
-      h+='<div class="tablewrap"><table><tr><th>Kelas</th><th>Hadir</th><th>Terlambat</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Total</th></tr>';
+      h+='<div class="tablewrap"><table><tr><th>Kelas</th><th>Hadir</th><th>Ijin</th><th>Sakit</th><th>Alpa</th><th>Prosentase Kehadiran</th></tr>';
       perKelas.forEach(x=>{
         h+='<tr><td>'+esc(x.kelas||x.Kelas||'')+'</td>'+
           '<td>'+Number(x.hadir||0)+'</td>'+
-          '<td>'+Number(x.terlambat||0)+'</td>'+
-          '<td>'+Number(x.sakit||0)+'</td>'+
           '<td>'+Number(x.izin||0)+'</td>'+
+          '<td>'+Number(x.sakit||0)+'</td>'+
           '<td>'+Number(x.alpa||0)+'</td>'+
-          '<td>'+Number(x.total||0)+'</td></tr>';
+          '<td>'+Number(x.percent||0)+'%</td></tr>';
       });
       h+='</table></div>';
     }else{
@@ -1488,6 +1520,7 @@ async function lr(){
     h+=signatureReportHtml();
 
     box.innerHTML=h;
+    try{await generateAndStoreReportPdf(r); box.insertAdjacentHTML('afterbegin','<div class="muted" style="margin-bottom:10px">✓ PDF laporan otomatis tersimpan di Firebase: schools/SMKWD/apps/piket/laporan_harian/'+esc(r.tanggal||tgl)+'</div>');}catch(pdfErr){box.insertAdjacentHTML('afterbegin','<div class="muted" style="margin-bottom:10px;color:#b45309">⚠ Laporan tampil, tetapi penyimpanan PDF otomatis gagal: '+esc(pdfErr.message||pdfErr)+'</div>');}
   }catch(e){
     box.innerHTML='';
     alert(e.message||String(e));
