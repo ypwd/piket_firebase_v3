@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TV Display Kehadiran Sekolah</title>
+<style>
+:root{--blue:#1556c0;--blue2:#0b3e96;--bg:#eef5fb;--text:#10254a;--green:#10b85a;--yellow:#ffb800;--cyan:#2196f3;--red:#ef3f45;--white:#fff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family: "Poppins", "Segoe UI", Arial, sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+body{min-width:1100px}.screen{display:none;width:100vw;height:100vh;padding:1.2vh 1.8vw;position:relative}.screen.active{display:block}
+.header{height:14vh;border-radius:0 0 22px 22px;background:linear-gradient(110deg,#a81106,#9e3902);color:white;display:flex;align-items:center;padding:1.2vh 2vw;position:relative;overflow:hidden}
+.logo{width:8vh;height:8vh;border-radius:50%;object-fit:contain;background:#fff;margin-right:1.2vw}.school{flex:1}.school h1{font-size:3.2vw;margin:0;font-weight:800;letter-spacing:.3px}.school p{font-size:1.35vw;margin:.5vh 0 0;font-weight:600}.clock{text-align:right;min-width:23vw}.clock .date{font-size:1.25vw;font-weight:700}.clock .time{font-size:2.8vw;font-weight:800;margin-top:.4vh}
+.main{height:72vh;margin-top:1.6vh;display:grid;grid-template-columns:28% 72%;gap:.8vw}
+.card{background:#fff;border:1px solid #cfe1f4;border-radius:18px;box-shadow:0 5px 16px rgba(31,77,125,.10);overflow:hidden}.card-title{height:6vh;display:flex;align-items:center;padding:0 1vw;font-size:1.55vw;font-weight:800;color:var(--blue2);background:#f5faff}.teacher{display:flex;flex-direction:column}.teacher .big{flex:1;margin:1.2vh 1vw;border-radius:16px;background:linear-gradient(145deg,#0b62ce,#1551ad);color:white;display:flex;flex-direction:column;justify-content:center;align-items:center}.teacher .num{font-size:8vw;font-weight:900;line-height:.9}.teacher .label{font-size:1.7vw;font-weight:800;margin-top:1.5vh}
+.student{display:flex;flex-direction:column}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.7vw;padding:1.2vh 1vw}.stat{height:21vh;border-radius:16px;color:white;text-align:center;display:flex;flex-direction:column;justify-content:center}.stat .num{font-size:4.4vw;font-weight:900;line-height:1}.stat .label{font-size:1.35vw;font-weight:800;margin-top:1vh}.hadir{background:var(--green)}.sakit{background:var(--yellow)}.izin{background:var(--cyan)}.alpa{background:var(--red)}
+.student-bottom{display:grid;grid-template-columns:1fr 1fr;gap:1vw;padding:0 1vw 1vh;flex:1}.pct{display:flex;align-items:center;justify-content:center;background:#f7fbff;border-radius:16px}.donut{width:24vh;height:24vh;position:relative;border-radius:50%;background:conic-gradient(var(--green) var(--pct),#dfe7ef 0);display:flex;align-items:center;justify-content:center}.donut:after{content:"";width:17vh;height:17vh;background:white;border-radius:50%;position:absolute}.pcttext{position:relative;z-index:1;width:15vh;text-align:center;font-weight:900;color:var(--blue2);font-size:2.6vw;line-height:1}.pcttext small{display:block;font-size:.9vw;line-height:1.15;margin-top:.7vh}.info{padding:1vh 1vw;background:#f7fbff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}.info h3{margin:.5vh 0;font-size:1.70vw;flex:0 0 auto}.info-list{flex:1;min-height:0;overflow:hidden}.info-item{padding:.8vh 0;border-bottom:1px solid #dce8f5}.info-item:last-child{border-bottom:0}.info-item b{font-size:1.25vw;display:block}.info-item p{margin:.2vh 0;font-size:.1.1vw;line-height:1.3}
+.duty{height:10vh;margin-top:1vh;display:flex;align-items:center;padding:1vh 1vw;overflow:auto;background:white;border:1px solid #cfe1f4;border-radius:16px;box-shadow:0 5px 16px rgba(31,77,125,.08)}.duty strong{font-size:1.2vw;color:var(--blue2)}.duty span{font-size:1vw;margin-left:1vw}
+.footer{height:7vh;margin-top:1vh;background:linear-gradient(90deg,#872c04,#953d07);color:white;border-radius:14px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5vw;font-size:1vw;font-weight:700;overflow:hidden}
+.marquee{display:block;max-width:48%;overflow:hidden;white-space:nowrap;text-align:right}
+.marquee>span{display:inline-block;padding-left:100%;animation:footerMarquee 18s linear infinite}
+@keyframes footerMarquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+.status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#14d86b;margin-right:8px}
+.table-card{height:72vh;margin-top:1.6vh}.table-title{height:7vh;background:linear-gradient(90deg,#0c4db8,#1766d4);color:white;display:flex;align-items:center;padding:0 1.2vw;font-size:1.7vw;font-weight:800}.tables{display:grid;grid-template-columns:1fr 1fr;gap:1vw;padding:1vh 1vw}.tbl{width:100%;border-collapse:collapse;font-size:1.05vw}.tbl th{background:#1460c8;color:#fff;padding:.8vh .5vw}.tbl td{padding:.75vh .5vw;border-bottom:1px solid #d6e5f4;text-align:center}.tbl td:nth-child(2){text-align:left;font-weight:700}.tbl tr:nth-child(even){background:#f4f9fe}.pctgood{font-weight:800;color:#0a8f4c}.pctlow{font-weight:800;color:#d13b32}
+@media(max-width:1300px){.school h1{font-size:2.8vw}.stats .stat{height:19vh}.stat .num{font-size:3.8vw}}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="screen1" class="screen active">
+  <header class="header">
+    <img id="logo" class="logo" src="" alt="Logo">
+    <div class="school"><h1 id="school">SMKS WIDYA DIRGANTARA BANDUNG</h1><p>SISTEM INFORMASI KEHADIRAN SEKOLAH</p></div>
+    <div class="clock"><div class="date" id="date">-</div><div class="time" id="time">--:--:--</div></div>
+  </header>
+  <div class="main">
+    <section class="card teacher"><div class="card-title">👨‍🏫 KEHADIRAN GURU</div><div class="big"><div class="num" id="teacherPresent">0</div><div class="label">GURU HADIR</div></div>
+      <div class="duty"><div><strong>👨‍🏫 GURU PIKET</strong><div id="duty">-</div></div></div>
+    </section>
+    <section class="card student"><div class="card-title">👨‍🎓 KEHADIRAN SISWA</div>
+      <div class="stats">
+        <div class="stat hadir"><div class="num" id="hadir">0</div><div class="label">HADIR</div></div>
+        <div class="stat sakit"><div class="num" id="sakit">0</div><div class="label">SAKIT</div></div>
+        <div class="stat izin"><div class="num" id="izin">0</div><div class="label">IZIN</div></div>
+        <div class="stat alpa"><div class="num" id="alpa">0</div><div class="label">ALPA</div></div>
+      </div>
+      <div class="student-bottom"><div class="pct"><div class="donut" id="donut"><div class="pcttext"><span id="pct">0</span><small>KEHADIRAN SISWA</small></div></div></div>
+        <div class="info"><h3>📢 INFORMASI SEKOLAH</h3><div id="infoList" class="info-list">Belum ada informasi aktif.</div></div></div>
+    </section>
+  </div>
+  <div class="footer"><span><i class="status-dot"></i>Data diperbarui <span id="updated">-</span> &nbsp;|&nbsp; Sistem Aktif</span><span class="marquee"><span>SELAMAT DATANG &nbsp;•&nbsp; DISIPLIN &nbsp;•&nbsp; HADIR &nbsp;•&nbsp; BERPRESTASI</span></span></div>
+</div>
+<div id="screen2" class="screen">
+  <header class="header">
+    <img id="logo2" class="logo" src="" alt="Logo">
+    <div class="school"><h1 id="school2">SMKS WIDYA DIRGANTARA BANDUNG</h1><p>REKAP KEHADIRAN SISWA</p></div>
+    <div class="clock"><div class="date" id="date2">-</div><div class="time" id="time2">--:--:--</div></div>
+  </header>
+  <section class="card table-card"><div class="table-title">📊 REKAP KEHADIRAN SISWA HARI INI</div><div class="tables"><table class="tbl"><thead><tr><th>NO</th><th>KELAS</th><th>HADIR</th><th>SAKIT</th><th>IZIN</th><th>ALPA</th><th>% KEHADIRAN</th></tr></thead><tbody id="tbody1"></tbody></table><table class="tbl"><thead><tr><th>NO</th><th>KELAS</th><th>HADIR</th><th>SAKIT</th><th>IZIN</th><th>ALPA</th><th>% KEHADIRAN</th></tr></thead><tbody id="tbody2"></tbody></table></div></section>
+  <div class="footer"><span><i class="status-dot"></i>Data diperbarui <span id="updated2">-</span> &nbsp;|&nbsp; Sistem Aktif</span><span class="marquee"><span>SELAMAT DATANG &nbsp;•&nbsp; DISIPLIN &nbsp;•&nbsp; HADIR &nbsp;•&nbsp; BERPRESTASI</span></span></div>
+</div>
+<script>
+
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyBjUHofZfjCYQ8oW4SLWizHkGuY49SJ2Yc",
+  authDomain:"absensi-siswa-smkwd.firebaseapp.com",
+  databaseURL:"https://absensi-siswa-smkwd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"absensi-siswa-smkwd",
+  storageBucket:"absensi-siswa-smkwd.firebasestorage.app",
+  messagingSenderId:"420017732791",
+  appId:"1:420017732791:web:b841fa4e5c91251e786132"
+};
+const SCHOOL='SMKWD', FB_ROOT='schools/'+SCHOOL;
+const INFO_PATH=FB_ROOT+'/apps/piket/tv_display/informasi';
+const TV_EMAIL='tv@tv.smkwd.local';
+const REFRESH_MS=30000, SLIDE_MS=12000;
+let data=null,infoPages=[],infoPageIndex=0;
+const $=id=>document.getElementById(id);
+if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+const FB_AUTH=firebase.auth(),FB_DB=firebase.database();
+$('logo').src='Logowd.png';$('logo2').src='Logowd.png';
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function fmt(n){return new Intl.NumberFormat('id-ID').format(n||0);}
+function dateJakarta(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta'}).format(new Date());}
+function dateOnly(v){return String(v||'').slice(0,10);}
+function asArray(v){if(!v)return[];return Array.isArray(v)?v.filter(Boolean):Object.entries(v).map(([k,x])=>Object.assign({_key:k},x||{}));}
+async function get(path){return (await FB_DB.ref(FB_ROOT+'/'+path).once('value')).val();}
+async function verifyTV(){
+  const u=FB_AUTH.currentUser;if(!u)throw Error('TV belum login Firebase.');
+  const s=await get('security/terminalUsers/'+u.uid);
+  if(!s || s.active!==true)throw Error('Akun TV belum terdaftar sebagai terminal aktif.');
+  return s;
+}
+async function load(){
+  try{
+    await verifyTV();
+    const today=dateJakarta();
+    const [teachers,studentAtt,jadwal,info]=await Promise.all([
+      get('shared/teachers'),get('apps/absensi_siswa/attendance'),get('apps/piket/jadwal'),get('apps/piket/tv_display/informasi')
+    ]);
+    const [teacherAtt]=await Promise.all([get('apps/absensi_guru/attendance')]);
+    const ta=asArray(teacherAtt).filter(x=>dateOnly(x.tanggal||x.Tanggal)===today);
+    const sa=asArray(studentAtt).filter(x=>dateOnly(x.tanggal||x.Tanggal)===today);
+    const js=asArray(jadwal).filter(x=>dateOnly(x.Tanggal||x.tanggal)===today && String(x.Status||x.status||'Aktif').toLowerCase()!=='nonaktif');
+    const inf=asArray(info).filter(x=>String(x.status||'')==='Aktif').sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+    const per={};
+    sa.forEach(x=>{
+      const kelas=x.kelas||x.Kelas||'Tanpa Kelas';
+      per[kelas]??={kelas,Hadir:0,Sakit:0,Izin:0,Alpa:0,total:0};
+      per[kelas].total++;
+      const st=String(x.status||x.Status||'').toLowerCase();
+      if(st==='hadir')per[kelas].Hadir++;
+      else if(st==='sakit')per[kelas].Sakit++;
+      else if(st==='izin'||st==='ijin')per[kelas].Izin++;
+      else if(st==='alpa')per[kelas].Alpa++;
+    });
+    const rows=Object.values(per).sort((a,b)=>String(a.kelas).localeCompare(String(b.kelas),'id',{numeric:true}));
+    const hadir=sa.filter(x=>String(x.status||x.Status||'').toLowerCase()==='hadir').length;
+    const sakit=sa.filter(x=>String(x.status||x.Status||'').toLowerCase()==='sakit').length;
+    const izin=sa.filter(x=>/^(izin|ijin)$/i.test(String(x.status||x.Status||''))).length;
+    const alpa=sa.filter(x=>String(x.status||x.Status||'').toLowerCase()==='alpa').length;
+    const persentase=sa.length?Number((hadir/sa.length*100).toFixed(2)):0;
+    const guruHadir=ta.filter(x=>String(x.status||x.Status||'Hadir').toLowerCase()==='hadir').length;
+    const guruPiket=js.map(x=>({nama:x.NamaGuru||x.NamaPetugas||x.namaPetugas||x.nama||'',ruang:x.RuangPiket||x.ruangPiket||''})).filter(x=>x.nama);
+    data={sekolah:'SMKS WIDYA DIRGANTARA BANDUNG',guru:{hadir:guruHadir},siswa:{hadir,sakit,izin,alpa,persentase},tanggalDisplay:new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}),generatedAt:new Date().toISOString(),guruPiket,informasi:inf,kelas:rows};
+    render();
+  }catch(e){console.warn('TV Firebase:',e);}
+}
+function render(){
+  if(!data)return;
+  $('school').textContent=data.sekolah;$('school2').textContent=data.sekolah;
+  $('teacherPresent').textContent=fmt(data.guru.hadir);
+  $('hadir').textContent=fmt(data.siswa.hadir);$('sakit').textContent=fmt(data.siswa.sakit);$('izin').textContent=fmt(data.siswa.izin);$('alpa').textContent=fmt(data.siswa.alpa);
+  $('pct').textContent=(data.siswa.persentase||0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  $('donut').style.setProperty('--pct',(data.siswa.persentase||0)+'%');
+  $('date').textContent=data.tanggalDisplay;$('date2').textContent=data.tanggalDisplay;
+  const duty=(data.guruPiket||[]).map(x=>'<div>'+esc(x.nama)+'</div>').join('')||'<div>Tidak ada jadwal piket</div>';$('duty').innerHTML=duty;
+  $('updated').textContent=new Date(data.generatedAt).toLocaleTimeString('id-ID');$('updated2').textContent=new Date(data.generatedAt).toLocaleTimeString('id-ID');
+  renderInfo();renderClasses();
+}
+function renderInfo(){
+  const a=data?.informasi||[],box=$('infoList');
+  if(!a.length){infoPages=[];infoPageIndex=0;box.innerHTML='<div class="info-item">Belum ada informasi aktif.</div>';return;}
+  infoPages=[];for(let i=0;i<a.length;i+=2)infoPages.push(a.slice(i,i+2));
+  infoPageIndex=Math.min(infoPageIndex,Math.max(0,infoPages.length-1));showInfoPage();
+}
+function showInfoPage(){
+  const page=infoPages[infoPageIndex]||[];if(!page.length)return;
+  $('infoList').innerHTML=page.map(x=>'<div class="info-item">'+(x.imageUrl?'<img src="'+esc(x.imageUrl)+'" alt="" style="max-width:100%;max-height:10vh;object-fit:cover;border-radius:8px;margin-bottom:4px" onerror="this.style.display=\'none\'">':'')+'<b>'+esc(x.title)+'</b><p>'+esc(x.content).replace(/\n/g,'<br>')+'</p></div>').join('');
+}
+function renderClasses(){
+  const rows=data.kelas||[],mid=Math.ceil(rows.length/2);
+  const make=(arr,start)=>arr.map((r,i)=>'<tr><td>'+(start+i+1)+'</td><td>'+esc(r.kelas)+'</td><td>'+fmt(r.Hadir)+'</td><td>'+fmt(r.Sakit)+'</td><td>'+fmt(r.Izin)+'</td><td>'+fmt(r.Alpa)+'</td><td class="'+((r.total&&r.Hadir/r.total*100)>=90?'pctgood':'pctlow')+'">'+Number(r.total?r.Hadir/r.total*100:0).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+'%</td></tr>').join('');
+  $('tbody1').innerHTML=make(rows.slice(0,mid),0);$('tbody2').innerHTML=make(rows.slice(mid),mid);
+}
+function clock(){const d=new Date(),t=d.toLocaleTimeString('id-ID',{hour12:false});$('time').textContent=t;$('time2').textContent=t;}
+function switchSlide(){const a=$('screen1'),b=$('screen2');a.classList.toggle('active');b.classList.toggle('active');}
+async function startTV(){try{await verifyTV();await load();setInterval(load,REFRESH_MS);}catch(e){console.error(e);alert('Akun TV belum terhubung ke Firebase terminalUsers.\n\n'+e.message);}}
+clock();setInterval(clock,1000);
+FB_AUTH.onAuthStateChanged(u=>{if(u)startTV();});
+async function ensureTVLogin(){
+  if(FB_AUTH.currentUser){await verifyTV();return true;}
+  let email=localStorage.getItem('TV_FIREBASE_EMAIL')||TV_EMAIL;
+  let password=sessionStorage.getItem('TV_FIREBASE_PASSWORD')||'';
+  if(!password){
+    email=prompt('Email akun TV Firebase:',email)||'';
+    if(!email)return false;
+    password=prompt('Password akun TV Firebase:')||'';
+    if(!password)return false;
+    try{
+      await FB_AUTH.signInWithEmailAndPassword(email.trim(),password);
+      localStorage.setItem('TV_FIREBASE_EMAIL',email.trim());
+      sessionStorage.setItem('TV_FIREBASE_PASSWORD',password);
+    }catch(e){alert('Login TV Firebase gagal:\n'+(e.message||e));return false;}
+  }else{
+    try{await FB_AUTH.signInWithEmailAndPassword(email,password);}
+    catch(e){sessionStorage.removeItem('TV_FIREBASE_PASSWORD');return ensureTVLogin();}
+  }
+  try{await verifyTV();return true;}
+  catch(e){await FB_AUTH.signOut();sessionStorage.removeItem('TV_FIREBASE_PASSWORD');alert(e.message);return false;}
+}
+ensureTVLogin().then(ok=>{if(ok)startTV();});
+setInterval(()=>{switchSlide();if($('screen1').classList.contains('active')&&infoPages.length>1){infoPageIndex=(infoPageIndex+1)%infoPages.length;showInfoPage();}},SLIDE_MS);
+window.addEventListener('resize',()=>{if(data)renderInfo();});
+document.addEventListener('dblclick',()=>document.documentElement.requestFullscreen?.());
+
+</script>
+</body>
+</html>
