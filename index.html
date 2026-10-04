@@ -934,7 +934,20 @@ async function login(){
 }
 async function logout(){try{if(T)await call('logout',T);}finally{T='';M=null;D={};clearSession();location.reload();}}
 async function refreshAll(initialData){
-  D=initialData||await call('initial',T);const d=await call('dash',T);
+  // Jadwal dan Data Guru harus tetap tampil walaupun pembacaan Absensi Siswa
+  // sementara ditolak oleh Firebase Rules. Jangan biarkan error tersebut
+  // menghentikan render seluruh aplikasi.
+  D=initialData||await call('initial',T);
+
+  // Statistik dashboard dihitung dari data yang sudah berhasil dimuat oleh initial().
+  // Absensi Siswa tetap dibaca oleh fungsi aslinya di bawah dan TIDAK diubah.
+  const d={
+    guru:(D.guru||[]).filter(x=>x.Aktif==='Ya').length,
+    jadwal:(D.jadwal||[]).length,
+    hadir:(D.kehadiran||[]).length,
+    kejadian:(D.kejadian||[]).filter(x=>String(x.Status||x.status||'').toLowerCase()!=='selesai').length,
+    tugas:(D.tugas||[]).filter(x=>String(x.Status||x.status||'').toLowerCase()!=='selesai').length
+  };
   $('dGuru').textContent=d.guru;$('dJadwal').textContent=d.jadwal;$('dHadir').textContent=d.hadir;$('dKejadian').textContent=d.kejadian;$('dTugas').textContent=d.tugas;
   try{const sr=await call('rekapAbsensiSiswa',T,new Date().toISOString().slice(0,10));$('dSiswa').textContent=sr.total;}catch(e){$('dSiswa').textContent='-';}
   const gs=(D.guru||[]).filter(x=>x.Aktif==='Ya');
