@@ -159,11 +159,25 @@ function clock(){const d=new Date(),t=d.toLocaleTimeString('id-ID',{hour12:false
 function switchSlide(){const a=$('screen1'),b=$('screen2');a.classList.toggle('active');b.classList.toggle('active');}
 async function startTV(){try{await verifyTV();await load();setInterval(load,REFRESH_MS);}catch(e){console.error(e);alert('Akun TV belum terhubung ke Firebase terminalUsers.\n\n'+e.message);}}
 clock();setInterval(clock,1000);
-FB_AUTH.onAuthStateChanged(u=>{if(u)startTV();});
 async function ensureTVLogin(){
-  if(FB_AUTH.currentUser){await verifyTV();return true;}
+  // Firebase Auth session bersifat satu project/origin. Jika halaman TV
+  // dibuka dari admin_tv, session Admin bisa masih aktif. Jangan pernah
+  // memakai session Admin/Guru sebagai session TV.
+  const current=FB_AUTH.currentUser;
+  if(current && String(current.email||'').toLowerCase()===TV_EMAIL.toLowerCase()){
+    try{await verifyTV();return true;}
+    catch(e){
+      await FB_AUTH.signOut();
+      sessionStorage.removeItem('TV_FIREBASE_PASSWORD');
+    }
+  }else if(current){
+    await FB_AUTH.signOut();
+    sessionStorage.removeItem('TV_FIREBASE_PASSWORD');
+  }
+
   let email=localStorage.getItem('TV_FIREBASE_EMAIL')||TV_EMAIL;
   let password=sessionStorage.getItem('TV_FIREBASE_PASSWORD')||'';
+
   if(!password){
     email=prompt('Email akun TV Firebase:',email)||'';
     if(!email)return false;
@@ -173,13 +187,37 @@ async function ensureTVLogin(){
       await FB_AUTH.signInWithEmailAndPassword(email.trim(),password);
       localStorage.setItem('TV_FIREBASE_EMAIL',email.trim());
       sessionStorage.setItem('TV_FIREBASE_PASSWORD',password);
-    }catch(e){alert('Login TV Firebase gagal:\n'+(e.message||e));return false;}
+    }catch(e){
+      alert('Login TV Firebase gagal:\n'+(e.message||e));
+      return false;
+    }
   }else{
-    try{await FB_AUTH.signInWithEmailAndPassword(email,password);}
-    catch(e){sessionStorage.removeItem('TV_FIREBASE_PASSWORD');return ensureTVLogin();}
+    try{
+      await FB_AUTH.signInWithEmailAndPassword(email,password);
+    }catch(e){
+      sessionStorage.removeItem('TV_FIREBASE_PASSWORD');
+      return ensureTVLogin();
+    }
   }
-  try{await verifyTV();return true;}
-  catch(e){await FB_AUTH.signOut();sessionStorage.removeItem('TV_FIREBASE_PASSWORD');alert(e.message);return false;}
+
+  // Pastikan akun yang baru login benar-benar akun TV.
+  const logged=FB_AUTH.currentUser;
+  if(!logged || String(logged.email||'').toLowerCase()!==TV_EMAIL.toLowerCase()){
+    await FB_AUTH.signOut();
+    sessionStorage.removeItem('TV_FIREBASE_PASSWORD');
+    alert('Gunakan akun TV: '+TV_EMAIL);
+    return false;
+  }
+
+  try{
+    await verifyTV();
+    return true;
+  }catch(e){
+    await FB_AUTH.signOut();
+    sessionStorage.removeItem('TV_FIREBASE_PASSWORD');
+    alert(e.message);
+    return false;
+  }
 }
 ensureTVLogin().then(ok=>{if(ok)startTV();});
 setInterval(()=>{switchSlide();if($('screen1').classList.contains('active')&&infoPages.length>1){infoPageIndex=(infoPageIndex+1)%infoPages.length;showInfoPage();}},SLIDE_MS);
